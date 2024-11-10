@@ -5,4 +5,7 @@ sealed class MainEvent {}
 
 final class FetchRepoData extends MainEvent {}
 
-final class FetchImageData extends MainEvent {}
+final class FetchSearchData extends MainEvent {
+  final String paramerterSearch;
+  FetchSearchData({required this.paramerterSearch});
+}

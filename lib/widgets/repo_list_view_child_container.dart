@@ -1,169 +1,109 @@
 import 'package:flutter/material.dart';
-import 'package:red_core/model/git_repo_model.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:red_core/model/movie_repo_model.dart' as model;
+import 'package:red_core/pages/detail_movie_page.dart';
 
-class RepoListViewChildContainer extends StatelessWidget {
+class MovieListContainer extends StatelessWidget {
   final String description;
-  final int commentCount;
-  final Owner ownerData;
-  final String createdDate;
-  final String updatedDate;
+  final String title;
+  final String url;
+  final model.MovieModelData repo;
 
-  const RepoListViewChildContainer({
+  const MovieListContainer({
     super.key,
     required this.description,
-    required this.commentCount,
-    required this.createdDate,
-    required this.updatedDate,
-    required this.ownerData,
+    required this.url,
+    required this.title,
+    required this.repo,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onLongPress: () => _showOwnerDetailsPopup(context),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailMoviePage(movie: repo),
+          ),
+        );
+      },
       child: Card(
-        elevation: 4,
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        elevation: 10,
+        margin: const EdgeInsets.all(8),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
             children: [
-              // Description
-              Text(
-                description,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              Positioned.fill(
+                child: url.isEmpty
+                    ? const Center(
+                        child: Icon(Icons.image, color: Colors.grey, size: 50))
+                    : Image.network(
+                        url,
+                        fit: BoxFit.cover,
+                        errorBuilder: (BuildContext context, Object error,
+                            StackTrace? stackTrace) {
+                          return const Center(
+                              child: Icon(Icons.error,
+                                  color: Colors.red, size: 50));
+                        },
+                      ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.black.withOpacity(0.5),
+                      Colors.black.withOpacity(0.3),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 12),
-              // Comment Count with Icon
-              Row(
-                children: [
-                  Icon(
-                    Icons.comment,
-                    color: Colors.blueGrey,
+              Positioned(
+                top: 10,
+                left: 16,
+                right: 16,
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '$commentCount comments',
-                    style: TextStyle(
+                  maxLines: 2,
+                ),
+              ),
+              Positioned(
+                bottom: 16,
+                left: 16,
+                right: 16,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    description,
+                    style: const TextStyle(
                       fontSize: 14,
-                      color: Colors.black54,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w400,
                     ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildDateInfo("Created:", createdDate),
-                  _buildDateInfo("Updated:", updatedDate),
-                ],
+                ),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildDateInfo(String label, String date) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.blueGrey,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          date,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.black54,
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showOwnerDetailsPopup(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          title: Text(
-            ownerData.login ?? "Owner",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (ownerData.avatarUrl != null)
-                CircleAvatar(
-                  radius: 40,
-                  backgroundImage: NetworkImage(ownerData.avatarUrl!),
-                ),
-              const SizedBox(height: 16),
-              Text(
-                'ID: ${ownerData.id}',
-                style: TextStyle(color: Colors.black54),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Type: ${ownerData.type ?? "N/A"}',
-                style: TextStyle(color: Colors.black54),
-              ),
-              const SizedBox(height: 8),
-              if (ownerData.htmlUrl != null)
-                InkWell(
-                  onTap: () => _launchURL(ownerData.htmlUrl!),
-                  child: Text(
-                    'Profile',
-                    style: TextStyle(color: Colors.blue),
-                  ),
-                ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Close"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Could not launch $url';
-    }
   }
 }

@@ -14,9 +14,10 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _positionController;
 
   late Animation<double> _scaleAnimation;
+  late Animation<Offset> _positionAnimation;
 
   bool _showText = true;
-  bool _hideScreen = false; // This controls the opacity
+  bool _hideScreen = false;
 
   @override
   void initState() {
@@ -31,7 +32,14 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MyHomePage(title: 'Movie App'),
+        ),
+      );
+    });
     _scaleAnimation = TweenSequence([
       TweenSequenceItem(
         tween: Tween<double>(begin: 0.4, end: 1)
@@ -45,14 +53,13 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     ]).animate(_scaleController);
 
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const MyHomePage(title: 'Redscope Home Page'),
-        ),
-      );
-    });
+    _positionAnimation = Tween<Offset>(
+      begin: const Offset(-1, 0),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _positionController, curve: Curves.easeInOut),
+    );
+
     Future.delayed(const Duration(milliseconds: 500), () {
       setState(() {
         _showText = false;
@@ -88,8 +95,23 @@ class _SplashScreenState extends State<SplashScreen>
             Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('assets/splash_screen_bg.png'),
+                  image: AssetImage('assets/images/splash_screen_bg.png'),
                   fit: BoxFit.fill,
+                ),
+              ),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 9.0),
+                  child: SlideTransition(
+                    position: _positionAnimation,
+                    child: ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: const Icon(
+                        Icons.live_tv_rounded,
+                        size: 94,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -99,7 +121,7 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Padding(
                   padding: EdgeInsets.only(left: 20, bottom: 2),
                   child: Text(
-                    'Redscope',
+                    'MovieVilla',
                     style: TextStyle(
                         fontSize: 36,
                         fontWeight: FontWeight.w700,

@@ -1,17 +1,16 @@
 import 'package:dio/dio.dart';
-import 'package:red_core/model/git_repo_model.dart';
-import 'package:red_core/model/image_model.dart';
+import 'package:red_core/model/movie_repo_model.dart';
 
 class MainRepo {
   final Dio? _dio = Dio();
 
-  Future<List<GitRepoModel>> fetchGitRepoData() async {
+  Future<List<MovieModelData>> fetchGitRepoData() async {
     try {
       final Response response =
-          await _dio!.get('https://api.github.com/gists/public');
+          await _dio!.get('https://api.tvmaze.com/search/shows?q=all');
       if (response.data != null) {
         return (response.data as List)
-            .map((item) => GitRepoModel.fromJson(item))
+            .map((item) => MovieModelData.fromJson(item))
             .toList();
       }
       return [];
@@ -21,13 +20,13 @@ class MainRepo {
     }
   }
 
-  Future<List<ImageModel>> fetchImageData() async {
+  Future<List<MovieModelData>> fetchImageData(String paramerterSearch) async {
     try {
-      final Response response = await _dio!.get(
-          'https://api.unsplash.com/photos/?client_id=ccMuvzc_8xQHsUp8DqYlW4Oh4fMetRM2lAhTx-KCfJU');
+      final Response response = await _dio!
+          .get('https://api.tvmaze.com/search/shows?q=${paramerterSearch}');
       if (response.data != null) {
         return (response.data as List)
-            .map((item) => ImageModel.fromJson(item))
+            .map((item) => MovieModelData.fromJson(item))
             .toList();
       }
       return [];
